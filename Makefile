@@ -1,7 +1,7 @@
 CFLAGS = -Wall -pedantic -std=c++11 -O2
 LIBS = -lSDL2 -lSDL2_image
 
-OBJS = build/main.o build/game.o
+OBJS = build/main.o build/game.o build/video.o build/figures.o build/random.o
 TARGET = main
 
 ${TARGET}: ${OBJS}
