@@ -1,5 +1,5 @@
-#ifndef __VIDEO_H_
-#define __VIDEO_H_
+#ifndef __RANDOM_H_
+#define __RANDOM_H_
 
 #include <random>
 #include <ctime>
