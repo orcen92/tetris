@@ -43,7 +43,7 @@ grid_height(gh)
 	next_figure_rect.h = next_figure_height;
 
 	score_rect.x = hor_margin + space_width + grid_width * (space_width + square_size) + side_margin;
-	score_rect.y = ver_margin + space_width + side_margin*3 + next_figure_height;
+	score_rect.y = ver_margin + space_width + side_margin*5 + next_figure_height;
 	score_rect.w = side_w - side_margin;
 	score_rect.h = score_height;
 }
@@ -83,8 +83,8 @@ void Video::init_squares() {
 		
 		// center is color_a, top-left is color_b, bottom-right is color_c
 		Uint32 color_a;
-//		Uint32 color_b;
-//		Uint32 color_c;
+		Uint32 color_b;
+		Uint32 color_c;
 		
 		for (int i=0; i<ncolors; i++) {
 			unsigned r=0, g=0, b=0;
@@ -105,14 +105,34 @@ void Video::init_squares() {
 					g=204; b=255;
 					break;
 			}
-			color_a = SDL_MapRGB(screen->format, r, g, b);
-//			color_b = SDL_MapRGB(screen->format, r*0.5, g*0.5, b*0.5);
-//			color_c = SDL_MapRGB(screen->format, r*0.2, g*0.2, b*0.2);
-			
-			// TODO: add edges
-			
+
 			SDL_Surface *sf = SDL_CreateRGBSurface(0, square_size, square_size, 32, 0, 0, 0, 0);
-			SDL_FillRect(sf, NULL, color_a);
+			color_a = SDL_MapRGB(sf->format, r, g, b);
+			color_c = SDL_MapRGB(sf->format, r*0.8, g*0.8, b*0.8);
+			color_b	= SDL_MapRGB(sf->format, r*0.5, g*0.5, b*0.5);
+ 
+			SDL_Rect rdst;
+			// fill top-left with color_c
+			rdst.x = 0;
+			rdst.y = 0;
+			rdst.w = square_size;
+			rdst.h = square_size;
+			SDL_FillRect(sf, &rdst, color_c);
+
+			// fill bot-right with color_b
+			rdst.x = square_edge;
+			rdst.y = square_edge;
+			rdst.w = square_size-square_edge;
+			rdst.h = square_size-square_edge;
+			SDL_FillRect(sf, &rdst, color_b);
+
+			// fill center with color_a
+			rdst.x = square_edge;
+			rdst.y = square_edge;
+			rdst.w = square_size-square_edge*2;
+			rdst.h = square_size-square_edge*2;
+			SDL_FillRect(sf, &rdst, color_a);
+
 			squares.push_back(sf);
 		}
 	}
@@ -197,9 +217,7 @@ void Video::clear_figure(Figure &fg) {
 }
 
 
-void Video::show_game_over() {
-	std::string text = "GAME OVER";
-	
+void Video::show_centered_text(const std::string &text) {
 	// blit on the center of game area
 	int x = hor_margin + (space_width + ( space_width + square_size)*grid_width) /2;
 	int y = ver_margin + (space_width + ( space_width + square_size)*grid_height)/2;
@@ -209,8 +227,18 @@ void Video::show_game_over() {
 	update_window();
 }
 
+void Video::show_game_over() {
+	std::string text = "GAME OVER";
+	show_centered_text(text);
+}
 
-void Video::render_text(std::string text, TTF_Font *font, int x, int y, Uint32 * background, bool centered) {
+void Video::show_pause() {
+	std::string text = "PAUSE";
+	show_centered_text(text);
+}
+
+
+void Video::render_text(const std::string & text, TTF_Font *font, int x, int y, Uint32 * background, bool centered) {
 	SDL_Color black;
 	black.r=black.g=black.b=0;
 

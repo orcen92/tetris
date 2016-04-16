@@ -14,12 +14,16 @@ class Game {
 		static const int fall_delay = 10;
 		static const int loop_delay = 10;
 		static const int move_delay = 10;
-		static const int fall_speed = 1000; // actually 1/speed
+		int fall_speed = 1000; // actually 1/speed
 
 		std::list<Square> squares;
 
+		Figure *next_figure = NULL;
+		Figure *current_figure = NULL;
+
 		int grid_width, grid_height;
 		int score = 0;
+		int level = 1;
 
 	public:
 		Game(int gw, int gh);
@@ -46,6 +50,8 @@ class Game {
 		void clear_row(int row);
 
 		int get_score() { return score; }
+
+		void redraw_all(Video &v, bool figure=true);
 
 //		static void delay(int ms);
 		

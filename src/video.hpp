@@ -36,8 +36,8 @@ class Video {
 		int grid_width, grid_height;
 
 		static const std::string font_path;
-		static const int small_font_size = 16;
-		static const int big_font_size = 32;
+		static const int small_font_size = 24;
+		static const int big_font_size = 48;
 		TTF_Font *font_small = NULL;
 		TTF_Font *font_big = NULL;
 
@@ -65,8 +65,10 @@ class Video {
 		
 		void clear_figure(Figure &fg);
 		
-		void render_text(std::string text, TTF_Font *font, int x, int y, Uint32 *background=NULL, bool centered=true);
+		void render_text(const std::string &text, TTF_Font *font, int x, int y, Uint32 *background=NULL, bool centered=true);
 		
+		void show_centered_text(const std::string &text);
+		void show_pause();
 		void show_game_over();
 		
 		void draw_score(int val);

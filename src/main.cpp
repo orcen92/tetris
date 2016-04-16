@@ -5,7 +5,7 @@
 #include <cstdio>
 
 
-const int gw = 12;
+const int gw = 10;
 const int gh = 20;
 
 

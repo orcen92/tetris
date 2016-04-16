@@ -124,9 +124,6 @@ void Game::run(Video &video) {
 	bool game_over = false;
 	
 //	for (int i=0; i<grid_width-1; i++) squares.push_front(Square(i, grid_height-1, RED));
-
-	Figure *current_figure = NULL;
-	Figure *next_figure = NULL;
 	
 	Uint32 fall_time=0;
 	while (not quit and not game_over) {
@@ -150,13 +147,8 @@ void Game::run(Video &video) {
 			fall_time = SDL_GetTicks();
 		}
 
-		video.draw_background();
-		video.draw_figure(*current_figure);
-		video.draw_squares(squares);
-		video.draw_next_figure(*next_figure);
-		video.draw_score(score);
-		video.update_window();
-
+		redraw_all(video);
+	
 		bool collision = false;
 
 		int to_rotate=0;
@@ -169,25 +161,37 @@ void Game::run(Video &video) {
 			if (e.type==SDL_QUIT) {
 				quit = true;
 				break;
-			} else if (e.type == SDL_KEYDOWN) {
-				
+			} else if (e.type == SDL_KEYDOWN) {	
 				// movement
 				if (e.key.keysym.sym == SDLK_SPACE) {
 					to_fall = true;
-				} else {
-					if (e.key.keysym.sym == SDLK_e) {
+				} else if (e.key.keysym.sym == SDLK_e) {
 						to_rotate = 1;
-					} else if (e.key.keysym.sym == SDLK_q) {
-						to_rotate = -1;
-					} else if (e.key.keysym.sym == SDLK_s) {
-						to_move = true;
-						dir = DOWN;
-					} else if (e.key.keysym.sym == SDLK_a) {
-						to_move = true;
-						dir = LEFT;
-					} else if (e.key.keysym.sym == SDLK_d) {
-						to_move = true;
-						dir = RIGHT;
+				} else if (e.key.keysym.sym == SDLK_q) {
+					to_rotate = -1;
+				} else if (e.key.keysym.sym == SDLK_s) {
+					to_move = true;
+					dir = DOWN;
+				} else if (e.key.keysym.sym == SDLK_a) {
+					to_move = true;
+					dir = LEFT;
+				} else if (e.key.keysym.sym == SDLK_d) {
+					to_move = true;
+					dir = RIGHT;
+				} // misc
+				else if (e.key.keysym.sym == SDLK_p) {
+					// pause
+					video.show_pause();
+					SDL_Event ee;
+					bool p = false;
+					while (not p) {
+						while (SDL_PollEvent(&ee)!=0) {
+							if (ee.type == SDL_KEYDOWN and ee.key.keysym.sym == SDLK_p) {
+								p = true;
+								break;
+							}
+						}
+						SDL_Delay(loop_delay);
 					}
 				}
 			}
@@ -198,13 +202,7 @@ void Game::run(Video &video) {
 			while (check_bottom(*current_figure) == false and check_touching(*current_figure, DOWN) == NULL) {
 				current_figure -> move(DOWN); 
 				
-				video.draw_background();
-				video.draw_figure(*current_figure);
-				video.draw_squares(squares);
-				video.draw_next_figure(*next_figure);
-				video.draw_score(score);
-				video.update_window();
-				
+				redraw_all(video);				
 				SDL_Delay(fall_delay);
 			}
 			collision = true;
@@ -283,15 +281,17 @@ void Game::run(Video &video) {
 			
 			std::vector<int> full_rows = check_full_row();
 			if (full_rows.empty() == false) {
-				score++;
+				
 				for (std::vector<int>::iterator it = full_rows.begin(); it!=full_rows.end(); ++it) {
+					score+=level;
+					level = 1+score/5;
+//					fall_speed = 1000 * 11./(score+10);
+					fall_speed = 100. + 900.*exp(-score/120.);
+					std::cout << fall_speed << std::endl;
 					clear_row(*it);
+					
 					SDL_Delay(clear_delay);
-					video.draw_background();
-					video.draw_squares(squares);
-					video.draw_next_figure(*next_figure);
-					video.draw_score(score);
-					video.update_window();
+					redraw_all(video, false);
 				}
 			}
 		}
@@ -324,3 +324,12 @@ void Game::run(Video &video) {
 	
 }
 
+void Game::redraw_all(Video &video, bool figure) {
+	video.draw_background();
+	if (figure)
+		video.draw_figure(*current_figure);
+	video.draw_squares(squares);
+	video.draw_next_figure(*next_figure);
+	video.draw_score(score);
+	video.update_window();
+}
