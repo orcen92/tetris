@@ -14,7 +14,6 @@ class Rectangle {
 		int xa, xb, ya, yb;
 		Rectangle() { ; }
 		Rectangle(int xxa, int xxb, int yya, int yyb) : xa(xxa), xb(xxb), ya(yya), yb(yyb) { ; }
-//		Rectangle(const Rectangle &r) { xa=r.xa; xb=r.xb; ya=r.ya; yb=r.yb; }
 		
 };
 
@@ -44,7 +43,7 @@ class Figure {
 		Figure& operator=(const Figure &fg);
 
 		void move(Direction d);
-		void rotate(bool clockwise=true); // otherwise anti-clockwis
+		void rotate(bool clockwise=true); // otherwise anti-clockwise
 		Rectangle get_bounds() const;
 
 		std::vector<std::pair<int, int> > get_squares_positions() const;

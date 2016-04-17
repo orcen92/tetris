@@ -9,7 +9,8 @@
 
 class Video {
 	private:
-
+		
+		// constants
 		static const int side_w = 200;
 		static const int side_h = 400;
 		static const int side_margin = 20;
@@ -25,16 +26,13 @@ class Video {
 
 		int screen_width, screen_height;
 
+		// colors
 		Uint32 background_color;
 		Uint32 frame_color;
 		
-		std::vector<SDL_Surface*> squares;
-
-		SDL_Window *window;
-		SDL_Surface *screen;
-
 		int grid_width, grid_height;
 
+		// fonts
 		static const std::string font_path;
 		static const int small_font_size = 24;
 		static const int big_font_size = 48;
@@ -46,6 +44,12 @@ class Video {
 		
 		SDL_Rect score_rect;
 //
+		// rendered squares
+		std::vector<SDL_Surface*> squares;
+		// main pointers
+		SDL_Window *window;
+		SDL_Surface *screen;
+
 		void init_font();
 		void init_squares();
 

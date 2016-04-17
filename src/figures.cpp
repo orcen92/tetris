@@ -51,14 +51,6 @@ Figure::Figure(int type, int xx, int yy) {
 	
 	x=xx;
 	y=yy;
-
-	// position checking moved to Game
-	/*
-	Rectangle r = get_bounds();
-	printf("%d %d %d %d\n", r.xa, r.xb, r.ya, r.yb);
-	if (r.xa < 0) x += -r.xa;
-	if (r.ya < 0) y += -r.ya;
-	*/ 
 }
 
 Figure::Figure(const Figure &fg) {
@@ -73,7 +65,6 @@ Figure& Figure::operator=(const Figure &fg) {
 	this->y = fg.y;
 	return *this;
 }
-
 
 Figure::~Figure() {
 	
@@ -173,5 +164,3 @@ bool Figure::is_overlaping(const Square &sq) const {
 	}
 	return false;
 }
-
-

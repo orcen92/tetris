@@ -2,7 +2,6 @@
 #include "random.hpp"
 #include <iostream>
 
-#define HERE(x) std::cout << x << std::endl;
 
 Game::Game(int gw, int gh) :
 grid_width(gw),
@@ -123,11 +122,11 @@ void Game::run(Video &video) {
 	bool quit = false;
 	bool game_over = false;
 	
-//	for (int i=0; i<grid_width-1; i++) squares.push_front(Square(i, grid_height-1, RED));
-	
+	// timer counting to fall_speed
 	Uint32 fall_time=0;
+	
 	while (not quit and not game_over) {
-
+		// create new figures if none
 		if (current_figure == NULL) {
 			if (next_figure == NULL) {
 				current_figure = new_figure(Random::get_int(Figure::ntypes), grid_width/2, 0, Random::get_int(4));
@@ -138,6 +137,7 @@ void Game::run(Video &video) {
 			}
 			// check if adding new figure is possible
 			if (check_overlapping(*current_figure) != NULL) {
+				// if not, the game is over
 				delete current_figure;
 				current_figure=NULL;
 				std::cout << "game over" << std::endl;	
@@ -146,36 +146,38 @@ void Game::run(Video &video) {
 			}
 			fall_time = SDL_GetTicks();
 		}
-
+		
+		// main redraw call
 		redraw_all(video);
-	
+
 		bool collision = false;
 
 		int to_rotate=0;
 		bool to_fall = false;
 		bool to_move = false;
-		Direction dir=DOWN;
+		Direction dir = DOWN;
 
+		// keyboard checking
 		SDL_Event e;
 		while (SDL_PollEvent(&e)!=0) {
-			if (e.type==SDL_QUIT) {
+			if (e.type==SDL_QUIT) { // quit
 				quit = true;
 				break;
 			} else if (e.type == SDL_KEYDOWN) {	
 				// movement
-				if (e.key.keysym.sym == SDLK_SPACE) {
+				if (e.key.keysym.sym == SDLK_SPACE) { // fast fall
 					to_fall = true;
-				} else if (e.key.keysym.sym == SDLK_e) {
+				} else if (e.key.keysym.sym == SDLK_e) { // rotate +
 						to_rotate = 1;
-				} else if (e.key.keysym.sym == SDLK_q) {
+				} else if (e.key.keysym.sym == SDLK_q) { // rotate -
 					to_rotate = -1;
-				} else if (e.key.keysym.sym == SDLK_s) {
+				} else if (e.key.keysym.sym == SDLK_s) { // move down
 					to_move = true;
 					dir = DOWN;
-				} else if (e.key.keysym.sym == SDLK_a) {
+				} else if (e.key.keysym.sym == SDLK_a) { // move left
 					to_move = true;
 					dir = LEFT;
-				} else if (e.key.keysym.sym == SDLK_d) {
+				} else if (e.key.keysym.sym == SDLK_d) { // move right
 					to_move = true;
 					dir = RIGHT;
 				} // misc
@@ -184,6 +186,7 @@ void Game::run(Video &video) {
 					video.show_pause();
 					SDL_Event ee;
 					bool p = false;
+					// wait for another 'p' press
 					while (not p) {
 						while (SDL_PollEvent(&ee)!=0) {
 							if (ee.type == SDL_KEYDOWN and ee.key.keysym.sym == SDLK_p) {
@@ -213,9 +216,11 @@ void Game::run(Video &video) {
 				current_figure->rotate(dir);
 				bool rotate_back = false;
 				
+				// check if rotation caused overlaping with a square
 				if (check_overlapping(*current_figure) != NULL) 
 					rotate_back = true;
-					
+				
+				// check if rotation caused getting out of bounds
 				Rectangle r = current_figure->get_bounds();
 				if (r.xa<0 or r.xb>=grid_width or r.ya<0 or r.yb>=grid_height) {
 					rotate_back = true;
@@ -230,6 +235,7 @@ void Game::run(Video &video) {
 			if (to_move) {
 				bool touching = false;
 
+				// check whether
 				if (check_touching(*current_figure, dir) != NULL ) { // touching another figure
 					touching = true;
 				} else if (dir==DOWN and check_bottom(*current_figure)) { // touching bottom
@@ -246,7 +252,7 @@ void Game::run(Video &video) {
 
 			// auto fall
 			if (SDL_GetTicks() >= fall_time + fall_speed) {
-				// check if movement would cause overlapping or out-of-bounds
+				// check if movement would cause overlapping or out-of-bounds at the bottom
 				if (check_touching(*current_figure, DOWN) != NULL or check_bottom(*current_figure) == true) {
 					collision = true;
 				} else {
@@ -256,49 +262,31 @@ void Game::run(Video &video) {
 			}
 		}
 
-/*		
-		bool remove_current = false;
-		if (fallen) {
-			if (check_bottom(*current_figure)) {
-				Rectangle r = current_figure->get_bounds();
-				if (r.yb > grid_height-1) {
-					for (int i=0; i< r.yb - grid_height; ++i) current_figure->move(UP);
-				}
-				remove_current=true;
-			}
-			if (check_collision(*current_figure)!=NULL) {
-				remove_current=true;
-			}
-			
-			SDL_Delay(move_delay);
-		}*/
-		
-//		if (remove_current) {
+		// current figure touched bottom or one of lying squares
 		if (collision) {
 			move_figure_to_list(*current_figure);
 			delete current_figure;
 			current_figure = NULL;
 			
+			// check for full rows (goals)
 			std::vector<int> full_rows = check_full_row();
-			if (full_rows.empty() == false) {
+			for (std::vector<int>::iterator it = full_rows.begin(); it!=full_rows.end(); ++it) {
+				score+=level;
+				level = 1+score/5;
+//				fall_speed = 1000 * 11./(score+10);
+				fall_speed = 100. + 900.*exp(-score/120.);
+				std::cout << fall_speed << std::endl;
+				clear_row(*it);
 				
-				for (std::vector<int>::iterator it = full_rows.begin(); it!=full_rows.end(); ++it) {
-					score+=level;
-					level = 1+score/5;
-//					fall_speed = 1000 * 11./(score+10);
-					fall_speed = 100. + 900.*exp(-score/120.);
-					std::cout << fall_speed << std::endl;
-					clear_row(*it);
-					
-					SDL_Delay(clear_delay);
-					redraw_all(video, false);
-				}
+				redraw_all(video, false);
+				SDL_Delay(clear_delay);
 			}
 		}
 
 		SDL_Delay(loop_delay);
 	}
 	
+	// show game over and wait for quit
 	quit = false;
 	if (game_over) {
 		video.show_game_over();
@@ -306,7 +294,8 @@ void Game::run(Video &video) {
 		while (not quit) {
 			SDL_Event e;
 			while (SDL_PollEvent(&e)!=0) {
-				if (e.type==SDL_QUIT) {
+				if (e.type==SDL_QUIT or
+				    (e.type==SDL_KEYDOWN and e.key.keysym.sym == SDLK_ESCAPE)) {
 					quit = true;
 					break;
 				}
@@ -320,8 +309,7 @@ void Game::run(Video &video) {
 	}
 	if (current_figure != NULL) { 
 		delete current_figure;
-	}
-	
+	}	
 }
 
 void Game::redraw_all(Video &video, bool figure) {

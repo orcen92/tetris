@@ -3,8 +3,6 @@
 
 #include <utility>
 
-#define HERE(x) std::cout << x << std::endl;
-
 const std::string Video::font_path = std::string("font.ttf");
 
 Video::Video(int gw, int gh) : 
